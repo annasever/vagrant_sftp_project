@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Logs Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            width: 80%;
+            margin: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #ddd;
+        }
+
+        th,
+        td {
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Logs Report</h1>
+
+        <h2>Total Logs Per Server</h2>
+        <table id="totalLogsTable">
+            <thead>
+                <tr>
+                    <th>Server</th>
+                    <th>Total Logs</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <h2>Logs Details</h2>
+        <table id="logsTable">
+            <thead>
+                <tr>
+                    <th>Server</th>
+                    <th>Filename</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <script>
+            fetch('/report')
+                .then(response => response.json())
+                .then(data => {
+                    const logsTableBody = document.querySelector('#logsTable tbody');
+                    const totalLogsTableBody = document.querySelector('#totalLogsTable tbody');
+
+                    const seenFiles = new Set();
+
+                    for (const [server, logs] of Object.entries(data)) {
+                        logs.forEach(log => {
+                            const formattedFilename = `${server}_file_${log.timestamp.replace(/:/g, '-')}.txt`;
+
+                            if (!seenFiles.has(formattedFilename)) {
+                                seenFiles.add(formattedFilename);
+
+                                const row = document.createElement('tr');
+                                row.innerHTML = `<td>${server}</td><td>${formattedFilename}</td><td>${log.timestamp}</td>`;
+                                logsTableBody.appendChild(row);
+                            }
+                        });
+
+                        const totalLogsRow = document.createElement('tr');
+                        totalLogsRow.innerHTML = `<td>${server}</td><td>${seenFiles.size}</td>`;
+                        totalLogsTableBody.appendChild(totalLogsRow);
+                    }
+                });
+        </script>
+    </div>
+</body>
+
+</html>
